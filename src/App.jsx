@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
-import 'bdsm';
+import API from 'bdsm';
 
 import RequestWorker from 'worker!./worker';
 const requestWorker = new RequestWorker();
+
+API.bootstrapWorker(requestWorker);
 
 class App extends Component {
   render() {
@@ -27,13 +29,18 @@ class App extends Component {
   	this.failing = this.failing.bind(this);
 
   	requestWorker.onmessage = (response) => {
-  		this.setState({ response: response.data });
+  		if (response.data.type !== 'RESPONSE') {
+  			return;
+			}
+
+  		this.setState({ response: response.data.payload });
   	}
   }
 
   successfull() {
   	this.setState({ response: 'loading'});
   	requestWorker.postMessage({
+  		type: 'REQUEST',
   		url: 'http://jsonplaceholder.typicode.com/posts/1',
   		method: 'GET'
   	});
@@ -42,6 +49,7 @@ class App extends Component {
   failing() {
   	this.setState({ response: 'loading'});
   	requestWorker.postMessage({
+			type: 'REQUEST',
   		url: 'http://localhost:3000/invalid/endpoint',
   		method: 'GET'
   	});
