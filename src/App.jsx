@@ -7,52 +7,50 @@ const requestWorker = new RequestWorker();
 API.bootstrapWorker(requestWorker);
 
 class App extends Component {
-  render() {
+	constructor() {
+		super();
+
+		this.state = {
+			response: null
+		};
+
+		requestWorker.onmessage = (response) => {
+			this.setState({ response: response.data.payload });
+		}
+	}
+
+	successful(requestMethod) {
+		this.setState({ response: 'loading'});
+		requestWorker.postMessage({
+			type: 'REQUEST',
+			url: 'http://jsonplaceholder.typicode.com/posts/1',
+			method: 'GET',
+			requestMethod
+		});
+	}
+
+	failing(requestMethod) {
+		this.setState({ response: 'loading'});
+		requestWorker.postMessage({
+			type: 'REQUEST',
+			url: 'http://localhost:3000/invalid/endpoint',
+			method: 'GET',
+			requestMethod
+		});
+	}
+
+	render() {
     return (
     	<div>
-    		<button type="button" onClick={ this.successfull }>Successfull request</button>
-    		<button type="button" onClick={ this.failing }>Failing request</button>
+    		<button type="button" onClick={ this.successful.bind(this, 'fetch') }>Successful request Fetch</button>
+    		<button type="button" onClick={ this.failing.bind(this, 'fetch') }>Failing request Fetch</button>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<button type="button" onClick={ this.successful.bind(this, 'xhr') }>Successful request XHR</button>
+				<button type="button" onClick={ this.failing.bind(this, 'xhr') }>Failing request XHR</button>
     		<p>{this.state.response && JSON.stringify(this.state.response)}</p>
     	</div>
 
     );
-  }
-
-  constructor() {
-  	super();
-
-  	this.state = {
-  		response: null
-  	};
-
-  	this.successfull = this.successfull.bind(this);
-  	this.failing = this.failing.bind(this);
-
-  	requestWorker.onmessage = (response) => {
-  		if (response.data.type !== 'RESPONSE') {
-  			return;
-			}
-
-  		this.setState({ response: response.data.payload });
-  	}
-  }
-
-  successfull() {
-  	this.setState({ response: 'loading'});
-  	requestWorker.postMessage({
-  		type: 'REQUEST',
-  		url: 'http://jsonplaceholder.typicode.com/posts/1',
-  		method: 'GET'
-  	});
-  }
-
-  failing() {
-  	this.setState({ response: 'loading'});
-  	requestWorker.postMessage({
-			type: 'REQUEST',
-  		url: 'http://localhost:3000/invalid/endpoint',
-  		method: 'GET'
-  	});
   }
 }
 export default App;

@@ -1,15 +1,30 @@
-import 'bdsm/dist/bdsm.worker.js';
+import 'bdsm/worker';
+import superagent from 'superagent';
 
 self.addEventListener('message', (message) => {
-  if (message.data.type !== 'REQUEST') {
-    return;
+  const { method, url, requestMethod } = message.data;
+
+  console.log({ method, url, requestMethod });
+
+  // XHR Sample with superagent
+  if (requestMethod === 'xhr') {
+    superagent
+      .get(url)
+      .end((err, res) => {
+        if (err) {
+          self.postMessage(err.message);
+        }
+
+        self.postMessage({ type: 'RESPONSE', payload: res.text });
+      });
   }
 
-  const { method, url } = message.data;
+  // fetch API sample
+  if (requestMethod === 'fetch') {
+    fetch(url)
+      .then((response) => response.text())
+      .then((response) => self.postMessage(Object.assign({}, { type: 'RESPONSE', payload: response })));
+  }
 
-  console.log({ method, url });
 
-  fetch(url)
-    .then((response) => response.text())
-    .then((response) => self.postMessage(Object.assign({}, { type: 'RESPONSE', payload: response })));
 });

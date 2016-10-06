@@ -42,7 +42,7 @@
     "worker-loader": "^0.7.1"
   },
   "dependencies": {
-    "bdsm": "^1.0.3-beta.2",
+    "bdsm": "^1.0.3-beta.6",
     "react": "15.2.1",
     "react-dom": "15.2.1",
     "superagent": "^2.3.0"
